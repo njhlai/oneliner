@@ -111,13 +111,6 @@ impl StatusLine {
             key_shortcut.key = to_char(keybinds, &[Action::SwitchToMode(InputMode::Normal)]);
         }
 
-        // In locked mode we must disable all other mode keybindings
-        if mode_info.mode == InputMode::Locked {
-            for key in default_keys.iter_mut().skip(1) {
-                key.mode = KeyMode::Disabled;
-            }
-        }
-
         let shared_super = status.len > 0;
         for key in default_keys {
             let line_empty = status.len == 0;
@@ -206,10 +199,14 @@ fn get_key_shortcut_for_mode<'a>(shortcuts: &'a mut [KeyShortcut], mode: &InputM
         InputMode::Session => KeyAction::Session,
     };
 
+    let mut val = None;
     for shortcut in shortcuts.iter_mut() {
         if shortcut.action == key_action {
-            return Some(shortcut);
+            val = Some(shortcut);
+        } else {
+            // hide all other modes
+            shortcut.mode = KeyMode::Disabled;
         }
     }
-    None
+    val
 }

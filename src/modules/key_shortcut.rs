@@ -70,8 +70,7 @@ impl KeyShortcut {
     pub fn shortcut(&self, colored_elements: ColoredElements, separator: &str, long: bool, with_prefix: bool, first_tile: bool) -> StatusLine {
         let key_hint = self.full_text();
         let key_binding = match (&self.mode, &self.key) {
-            (KeyMode::Disabled, None) => "".to_string(),
-            (_, None) => return StatusLine::default(),
+            (_, None) | (KeyMode::Disabled, _) => return StatusLine::default(),
             (_, Some(_)) => self.letter_shortcut(!with_prefix),
         };
 

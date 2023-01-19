@@ -1,0 +1,10 @@
+[package]
+name = "oneliner"
+version = "0.1.0"
+authors = ["njhlai <nicholasjhlai@gmail.com>"]
+edition = "2021"
+
+[dependencies]
+ansi_term = "0.12.1"
+zellij-tile = "0.34.4"
+zellij-tile-utils = "0.34.4"

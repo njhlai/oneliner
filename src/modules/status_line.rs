@@ -51,11 +51,8 @@ impl StatusLine {
         }
     }
 
-    pub fn build(mode_info: &ModeInfo, max_len: usize, separator: &str) -> StatusLine {
-        let keybinds = &(mode_info.get_mode_keybinds());
-        let colored_elements = ColoredElements::color_elements(&(mode_info.style.colors), !mode_info.capabilities.arrow_fonts);
-
-        let mut status = Self::superkey(keybinds, colored_elements, separator, mode_info.capabilities.arrow_fonts);
+    pub fn build(mode: &InputMode, keybinds: &Vec<(Key, Vec<Action>)>, colored_elements: ColoredElements, arrow_fonts: bool, separator: &str, max_len: usize) -> StatusLine {
+        let mut status = Self::superkey(keybinds, colored_elements, separator, arrow_fonts);
 
         // Unselect all by default
         let mut default_keys = vec![
@@ -106,7 +103,7 @@ impl StatusLine {
             ),
         ];
 
-        if let Some(key_shortcut) = get_key_shortcut_for_mode(&mut default_keys, &mode_info.mode) {
+        if let Some(key_shortcut) = get_key_shortcut_for_mode(&mut default_keys, mode) {
             key_shortcut.mode = KeyMode::Selected;
             key_shortcut.key = to_char(keybinds, &[Action::SwitchToMode(InputMode::Normal)]);
         }

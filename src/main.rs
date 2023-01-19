@@ -2,6 +2,7 @@ mod modules;
 
 use zellij_tile::prelude::*;
 
+use crate::modules::colored_elements::ColoredElements;
 use crate::modules::status_line::StatusLine;
 
 static ARROW_SEPARATOR: &str = "";
@@ -28,11 +29,11 @@ impl ZellijPlugin for State {
             Event::ModeUpdate(mode_info) => {
                 should_render = self.mode_info != mode_info;
                 self.mode_info = mode_info;
-            }
+            },
             Event::TabUpdate(tabs) => {
                 should_render = self.tabs != tabs;
                 self.tabs = tabs;
-            }
+            },
             _ => {},
         }
 
@@ -40,13 +41,13 @@ impl ZellijPlugin for State {
     }
 
     fn render(&mut self, _rows: usize, cols: usize) {
-        let separator = if !self.mode_info.capabilities.arrow_fonts {
-            ARROW_SEPARATOR
-        } else {
-            ""
-        };
+        let mode = &(self.mode_info.mode);
+        let keybinds = &(self.mode_info.get_mode_keybinds());
+        let arrow_fonts = self.mode_info.capabilities.arrow_fonts;
+        let colored_elements = ColoredElements::color_elements(&(self.mode_info.style.colors), !arrow_fonts);
+        let separator = if !arrow_fonts { ARROW_SEPARATOR } else { "" };
 
-        let status = StatusLine::build(&self.mode_info, cols, separator);
+        let status = StatusLine::build(mode, keybinds, colored_elements, arrow_fonts, separator, cols);
         let background = match self.mode_info.style.colors.theme_hue {
             ThemeHue::Dark => self.mode_info.style.colors.black,
             ThemeHue::Light => self.mode_info.style.colors.white,

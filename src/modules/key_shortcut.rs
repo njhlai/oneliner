@@ -16,6 +16,7 @@ pub enum KeyAction {
     Search,
     Scroll,
     Session,
+    Tmux,
     Quit,
 }
 
@@ -47,6 +48,7 @@ impl KeyShortcut {
             KeyAction::Search => String::from("SEARCH"),
             KeyAction::Scroll => String::from("SCROLL"),
             KeyAction::Session => String::from("SESSION"),
+            KeyAction::Tmux => String::from("TMUX"),
             KeyAction::Quit => String::from("QUIT"),
         }
     }
@@ -177,6 +179,11 @@ pub fn generate_shortcuts(keybinds: &Vec<(Key, Vec<Action>)>, mode: &InputMode) 
             utils::to_key(keybinds, &[Action::SwitchToMode(InputMode::Session)]),
         ),
         KeyShortcut::new(
+            KeyMode::Unselected,
+            KeyAction::Tmux,
+            utils::to_key(keybinds, &[Action::SwitchToMode(InputMode::Tmux)]),
+        ),
+        KeyShortcut::new(
             KeyMode::UnselectedAlternate,
             KeyAction::Quit,
             utils::to_key(keybinds, &[Action::Quit]),
@@ -185,7 +192,7 @@ pub fn generate_shortcuts(keybinds: &Vec<(Key, Vec<Action>)>, mode: &InputMode) 
 
     let key_action = match mode {
         // Return on Normal mode
-        InputMode::Normal | InputMode::Prompt | InputMode::Tmux => return shortcuts,
+        InputMode::Normal | InputMode::Prompt => return shortcuts,
         // Otherwise, proceed with modifying shortcuts
         InputMode::Locked => KeyAction::Lock,
         InputMode::Pane | InputMode::RenamePane => KeyAction::Pane,
@@ -195,6 +202,7 @@ pub fn generate_shortcuts(keybinds: &Vec<(Key, Vec<Action>)>, mode: &InputMode) 
         InputMode::Search | InputMode::EnterSearch => KeyAction::Search,
         InputMode::Scroll => KeyAction::Scroll,
         InputMode::Session => KeyAction::Session,
+        InputMode::Tmux => KeyAction::Tmux,
     };
 
     for shortcut in shortcuts.iter_mut() {

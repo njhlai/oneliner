@@ -26,6 +26,7 @@ pub fn filter_get_superkey(key: &Key, vac: &Vec<Action>) -> Option<&'static str>
                         | InputMode::Search
                         | InputMode::Scroll
                         | InputMode::Session
+                        | InputMode::Tmux
                     )
                 },
                 // `Quit` action
@@ -233,6 +234,22 @@ pub fn get_keys_and_hints(mode_info: &ModeInfo) -> Vec<(String, String, Vec<Key>
         InputMode::Session => {
             vec![
                 (s("Detach"), s("Detach"), action_key(&km, &[Action::Detach])),
+                (s("Select pane"), s("Select"), to_normal_key),
+            ]
+        },
+        InputMode::Tmux => {
+            vec![
+                (s("Move focus"), s("Move"), action_key_group(&km, &[
+                    &[Action::MoveFocus(Direction::Left)], &[Action::MoveFocus(Direction::Down)],
+                    &[Action::MoveFocus(Direction::Up)], &[Action::MoveFocus(Direction::Right)]])),
+                (s("Split down"), s("Down"), action_key(&km, &[Action::NewPane(Some(Direction::Down), None), Action::SwitchToMode(InputMode::Normal)])),
+                (s("Split right"), s("Right"), action_key(&km, &[Action::NewPane(Some(Direction::Right), None), Action::SwitchToMode(InputMode::Normal)])),
+                (s("Fullscreen"), s("Fullscreen"), action_key(&km, &[Action::ToggleFocusFullscreen, Action::SwitchToMode(InputMode::Normal)])),
+                (s("New tab"), s("New"), action_key(&km, &[Action::NewTab(None, None), Action::SwitchToMode(InputMode::Normal)])),
+                (s("Rename tab"), s("Rename"),
+                    action_key(&km, &[Action::SwitchToMode(InputMode::RenameTab), Action::TabNameInput(vec![0])])),
+                (s("Previous Tab"), s("Previous"), action_key(&km, &[Action::GoToPreviousTab, Action::SwitchToMode(InputMode::Normal)])),
+                (s("Next Tab"), s("Next"), action_key(&km, &[Action::GoToNextTab, Action::SwitchToMode(InputMode::Normal)])),
                 (s("Select pane"), s("Select"), to_normal_key),
             ]
         },

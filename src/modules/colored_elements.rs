@@ -1,4 +1,4 @@
-use ansi_term::Style;
+use ansi_term::{ANSIString, Style};
 use zellij_tile::prelude::*;
 use zellij_tile_utils::style;
 
@@ -11,6 +11,10 @@ pub struct ColoredElements {
     // superkey
     pub superkey_prefix: Style,
     pub superkey_suffix_separator: Style,
+    // status
+    pub modifier: Style,
+    pub key: Style,
+    pub text: Style,
 }
 
 #[derive(Clone, Copy)]
@@ -78,6 +82,9 @@ impl ColoredElements {
                 },
                 superkey_prefix: style!(foreground, background).bold(),
                 superkey_suffix_separator: style!(background, background),
+                modifier: style!(palette.orange, background).bold(),
+                key: style!(palette.green, background).bold(),
+                text: style!(foreground, background),
             },
             PaletteSource::Xresources => ColoredElements {
                 selected: SegmentStyle {
@@ -114,7 +121,88 @@ impl ColoredElements {
                 },
                 superkey_prefix: style!(background, palette.fg).bold(),
                 superkey_suffix_separator: style!(palette.fg, background),
+                modifier: style!(palette.orange, background).bold(),
+                key: style!(palette.green, background).bold(),
+                text: style!(foreground, background),
             },
         }
+    }
+
+    pub fn style_key_with_modifier(&self, keyvec: &[Key]) -> Vec<ANSIString<'static>> {
+        // Nothing to do, quit...
+        if keyvec.is_empty() { return vec![]; }
+
+        let mut ret = vec![];
+
+        let mut keyvec_iter = keyvec.iter();
+        let maybe_modifier = match keyvec_iter.next() {
+            // Check if all modifiers are the same, if keys exist
+            Some(key) if keyvec_iter.all(|str| str == key) => {
+                match key {
+                    Key::Ctrl(_) => Some("Ctrl".to_string()),
+                    Key::Alt(_) => Some("Alt".to_string()),
+                    _ => None,
+                }
+            },
+            _ => None,
+        };
+
+        // Prints modifier key
+        let modifier_str = match maybe_modifier {
+            Some(modifier) => modifier,
+            None => "".to_string(),
+        };
+        let no_modifier = modifier_str.is_empty();
+        let painted_modifier = if modifier_str.is_empty() {
+            Style::new().paint("")
+        } else {
+            self.modifier.paint(modifier_str)
+        };
+        ret.push(painted_modifier);
+
+        // Prints key group start
+        let group_start_str = if no_modifier { "<" } else { " + <" };
+        ret.push(self.text.paint(group_start_str));
+
+        // Prints the keys
+        let key = keyvec
+            .iter()
+            .map(|key| {
+                if no_modifier {
+                    format!("{}", key)
+                } else {
+                    match key {
+                        Key::Ctrl(c) => format!("{}", Key::Char(*c)),
+                        Key::Alt(c) => format!("{}", c),
+                        _ => format!("{}", key),
+                    }
+                }
+            })
+            .collect::<Vec<String>>();
+
+        let key_string = key.join("");
+        let key_separator = match &key_string[..] {
+            // Special handling of some pre-defined keygroups
+            "HJKL" => "",
+            "hjkl" => "",
+            "←↓↑→" => "",
+            "←→" => "",
+            "↓↑" => "",
+            // Default separator
+            _ => "|",
+        };
+
+        for (idx, key) in key.iter().enumerate() {
+            if idx > 0 && !key_separator.is_empty() {
+                ret.push(self.text.paint(key_separator));
+            }
+            ret.push(self.key.paint(key.clone()));
+        }
+
+        // Prints key group end
+        let group_end_str = ">";
+        ret.push(self.text.paint(group_end_str));
+
+        ret
     }
 }

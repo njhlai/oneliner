@@ -45,24 +45,6 @@ pub fn filter_get_superkey(key: &Key, vac: &Vec<Action>) -> Option<&'static str>
     }
 }
 
-pub fn to_key(keybinds: &Vec<(Key, Vec<Action>)>, action: &[Action]) -> Option<Key> {
-    keybinds.iter()
-        // Get keybinds which match specified action
-        .filter_map(|(key, actions)| {
-            if actions.as_slice() == action {
-                Some(*key)
-            } else {
-                None
-            }
-        })
-        .into_iter()
-        // Filter out certain "default" keybindings: ' ', '\n', 'Esc'
-        .filter(|key| !matches!(key, Key::Char(' ') | Key::Char('\n') | Key::Esc))
-        // Get only the first Key
-        .next()
-}
-
-
 fn action_key(keybinds: &[(Key, Vec<Action>)], action: &[Action]) -> Vec<Key> {
     keybinds.iter()
         // Get keybinds which match specified action
@@ -76,17 +58,28 @@ fn action_key(keybinds: &[(Key, Vec<Action>)], action: &[Action]) -> Vec<Key> {
         .collect::<Vec<Key>>()
 }
 
-fn action_key_group(keymap: &[(Key, Vec<Action>)], actions: &[&[Action]]) -> Vec<Key> {
+fn action_key_group(keybinds: &[(Key, Vec<Action>)], actions: &[&[Action]]) -> Vec<Key> {
     let mut ret = vec![];
-    for action in actions {
-        ret.extend(action_key(keymap, *action));
+
+    for &action in actions {
+        ret.extend(action_key(keybinds, action));
     }
+
     ret
 }
 
+pub fn to_key(keybinds: &[(Key, Vec<Action>)], action: &[Action]) -> Option<Key> {
+    action_key(keybinds, action)
+        .into_iter()
+        // Filter out certain "default" keybindings: ' ', '\n', 'Esc'
+        .filter(|key| !matches!(key, Key::Char(' ') | Key::Char('\n') | Key::Esc))
+        // Get only the first Key
+        .next()
+}
+
 #[rustfmt::skip]
-pub fn get_keys_and_hints(mi: &ModeInfo) -> Vec<(String, String, Vec<Key>)> {
-    let mut old_keymap = mi.get_mode_keybinds();
+pub fn get_keys_and_hints(mode_info: &ModeInfo) -> Vec<(String, String, Vec<Key>)> {
+    let mut old_keymap = mode_info.get_mode_keybinds();
     let s = |string: &str| string.to_string();
 
     // Find a keybinding to get back to "Normal" input mode. In this case we prefer '\n' over other
@@ -116,7 +109,7 @@ pub fn get_keys_and_hints(mi: &ModeInfo) -> Vec<(String, String, Vec<Key>)> {
         }
     }
 
-    match mi.mode {
+    match mode_info.mode {
         InputMode::Pane => {
             vec![
                 (s("Move focus"), s("Move"),
@@ -144,7 +137,7 @@ pub fn get_keys_and_hints(mi: &ModeInfo) -> Vec<(String, String, Vec<Key>)> {
             // "left" and DownArrow for "right". What we really expect is to see LeftArrow and
             // RightArrow.
             // FIXME: So for lack of a better idea we just check this case manually here.
-            let old_keymap = mi.get_mode_keybinds();
+            let old_keymap = mode_info.get_mode_keybinds();
             let focus_keys_full: Vec<Key> = action_key_group(&old_keymap,
                 &[&[Action::GoToPreviousTab], &[Action::GoToNextTab]]);
             let focus_keys = if focus_keys_full.contains(&Key::Left)

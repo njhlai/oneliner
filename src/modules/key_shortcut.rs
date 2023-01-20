@@ -1,8 +1,10 @@
 use ansi_term::ANSIStrings;
 use zellij_tile::prelude::*;
+use zellij_tile::prelude::actions::Action;
 
 use super::status_line::StatusLine;
 use super::colored_elements::ColoredElements;
+use super::utils;
 
 #[derive(PartialEq)]
 pub enum KeyAction {
@@ -31,7 +33,7 @@ pub struct KeyShortcut {
 }
 
 impl KeyShortcut {
-    pub fn new(mode: KeyMode, action: KeyAction, key: Option<Key>) -> Self {
+    fn new(mode: KeyMode, action: KeyAction, key: Option<Key>) -> Self {
         KeyShortcut { mode, action, key }
     }
 
@@ -49,12 +51,13 @@ impl KeyShortcut {
         }
     }
 
-    fn letter_shortcut(&self, with_prefix: bool) -> String {
+    fn letter_shortcut_and_count(&self, long: bool, with_prefix: bool) -> (String, usize) {
         let key = match self.key {
             Some(k) => k,
-            None => return String::from("?"),
+            None => Key::Null,
         };
-        if with_prefix {
+
+        let key_binding = if with_prefix {
             format!("{}", key)
         } else {
             match key {
@@ -64,14 +67,23 @@ impl KeyShortcut {
                 Key::Alt(c) => format!("{}", c),
                 _ => String::from("??"),
             }
+        };
+        let count = key_binding.chars().count();
+
+        if long {
+            (key_binding, count)
+        } else {
+            (format!(" {} ", key_binding), count + 2)
         }
     }
 
-    pub fn shortcut(&self, colored_elements: ColoredElements, separator: &str, long: bool, with_prefix: bool, first_tile: bool) -> StatusLine {
+    pub fn generate_status(&self, colored_elements: ColoredElements, separator: &str, long: bool, with_prefix: bool, first_tile: bool) -> StatusLine {
         let key_hint = self.full_text();
-        let key_binding = match (&self.mode, &self.key) {
+        let (key_binding, count) = match (&self.mode, &self.key) {
+            // Disabled or unreachable mode, don't print
             (_, None) | (KeyMode::Disabled, _) => return StatusLine::default(),
-            (_, Some(_)) => self.letter_shortcut(!with_prefix),
+            // Reachable mode, print
+            (_, Some(_)) => self.letter_shortcut_and_count(long, !with_prefix),
         };
 
         let colors = match self.mode {
@@ -82,17 +94,15 @@ impl KeyShortcut {
         };
         let start_separator = if !with_prefix && first_tile { "" } else { separator };
         let prefix_separator = colors.prefix_separator.paint(start_separator);
-        let char_left_separator = colors.char_left_separator.paint(" <".to_string());
-        let char_shortcut = if long {
-            colors.char_shortcut.paint(key_binding.to_string())
-        } else {
-            colors.char_shortcut.paint(format!(" {} ", key_binding))
-        };
-        let char_right_separator = colors.char_right_separator.paint("> ".to_string());
-        let styled_text = colors.styled_text.paint(format!("{} ", key_hint));
+        let char_shortcut = colors.char_shortcut.paint(key_binding);
         let suffix_separator = colors.suffix_separator.paint(separator);
 
         if long {
+            let char_left_separator = colors.char_left_separator.paint(" <".to_string());
+            let char_right_separator = colors.char_right_separator.paint("> ".to_string());
+            let styled_text = colors.styled_text.paint(format!("{} ", key_hint));
+
+            // Full form printing
             StatusLine {
                 part: ANSIStrings(&[
                     prefix_separator,
@@ -105,21 +115,98 @@ impl KeyShortcut {
                 .to_string(),
                 len: start_separator.chars().count() // Separator
                     + 2                              // " <"
-                    + key_binding.chars().count()    // Key binding
+                    + count                          // Key binding
                     + 2                              // "> "
                     + key_hint.chars().count()       // Key hint (mode)
                     + 1                              // " "
                     + separator.chars().count(),     // Separator
             }
         } else {
+            // Short form printing
             StatusLine {
                 part: ANSIStrings(&[prefix_separator, char_shortcut, suffix_separator]).to_string(),
                 len: separator.chars().count()      // Separator
-                    + 1                             // " "
-                    + key_binding.chars().count()   // Key binding
-                    + 1                             // " "
+                    + count                         // Key binding
                     + separator.chars().count(),    // Separator
             }
         }
     }
+}
+
+pub fn generate_shortcuts(keybinds: &Vec<(Key, Vec<Action>)>, mode: &InputMode) -> Vec<KeyShortcut> {
+    // Unselect all by default
+    let mut shortcuts = vec![
+        KeyShortcut::new(
+            KeyMode::Unselected,
+            KeyAction::Lock,
+            utils::to_key(keybinds, &[Action::SwitchToMode(InputMode::Locked)]),
+        ),
+        KeyShortcut::new(
+            KeyMode::UnselectedAlternate,
+            KeyAction::Pane,
+            utils::to_key(keybinds, &[Action::SwitchToMode(InputMode::Pane)]),
+        ),
+        KeyShortcut::new(
+            KeyMode::Unselected,
+            KeyAction::Tab,
+            utils::to_key(keybinds, &[Action::SwitchToMode(InputMode::Tab)]),
+        ),
+        KeyShortcut::new(
+            KeyMode::UnselectedAlternate,
+            KeyAction::Resize,
+            utils::to_key(keybinds, &[Action::SwitchToMode(InputMode::Resize)]),
+        ),
+        KeyShortcut::new(
+            KeyMode::Unselected,
+            KeyAction::Move,
+            utils::to_key(keybinds, &[Action::SwitchToMode(InputMode::Move)]),
+        ),
+        KeyShortcut::new(
+            KeyMode::UnselectedAlternate,
+            KeyAction::Search,
+            utils::to_key(keybinds, &[Action::SwitchToMode(InputMode::Search)]),
+        ),
+        KeyShortcut::new(
+            KeyMode::UnselectedAlternate,
+            KeyAction::Scroll,
+            utils::to_key(keybinds, &[Action::SwitchToMode(InputMode::Scroll)]),
+        ),
+        KeyShortcut::new(
+            KeyMode::Unselected,
+            KeyAction::Session,
+            utils::to_key(keybinds, &[Action::SwitchToMode(InputMode::Session)]),
+        ),
+        KeyShortcut::new(
+            KeyMode::UnselectedAlternate,
+            KeyAction::Quit,
+            utils::to_key(keybinds, &[Action::Quit]),
+        ),
+    ];
+
+    let key_action = match mode {
+        // Return on Normal mode
+        InputMode::Normal | InputMode::Prompt | InputMode::Tmux => return shortcuts,
+        // Otherwise, proceed with modifying shortcuts
+        InputMode::Locked => KeyAction::Lock,
+        InputMode::Pane | InputMode::RenamePane => KeyAction::Pane,
+        InputMode::Tab | InputMode::RenameTab => KeyAction::Tab,
+        InputMode::Resize => KeyAction::Resize,
+        InputMode::Move => KeyAction::Move,
+        InputMode::Search | InputMode::EnterSearch => KeyAction::Search,
+        InputMode::Scroll => KeyAction::Scroll,
+        InputMode::Session => KeyAction::Session,
+    };
+
+    for shortcut in shortcuts.iter_mut() {
+        if shortcut.action == key_action {
+            // Highlight current mode
+            shortcut.mode = KeyMode::Selected;
+            shortcut.key = utils::to_key(keybinds, &[Action::SwitchToMode(InputMode::Normal)]);
+        } else {
+            // Hide all other modes
+            shortcut.mode = KeyMode::Disabled;
+        }
+    }
+
+    shortcuts
 }

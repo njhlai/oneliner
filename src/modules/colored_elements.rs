@@ -128,31 +128,26 @@ impl ColoredElements {
         }
     }
 
-    pub fn style_key_with_modifier(&self, keyvec: &[Key]) -> Vec<ANSIString<'static>> {
-        // Nothing to do, quit...
-        if keyvec.is_empty() { return vec![]; }
+    pub fn paint_keys(&self, keys: &[Key]) -> Vec<ANSIString<'static>> {
+        if keys.is_empty() { return vec![]; }
 
         let mut ret = vec![];
 
-        let mut keyvec_iter = keyvec.iter();
-        let maybe_modifier = match keyvec_iter.next() {
+        let mut modifier_iter = keys.iter()
+            // Filter and retain only modifier keys
+            .filter_map(|key| { match key {
+                Key::Ctrl(_) => Some("Ctrl"),
+                Key::Alt(_) => Some("Alt"),
+                _ => None,
+            }});
+        let modifier_str = match modifier_iter.next() {
             // Check if all modifiers are the same, if keys exist
-            Some(key) if keyvec_iter.all(|str| str == key) => {
-                match key {
-                    Key::Ctrl(_) => Some("Ctrl".to_string()),
-                    Key::Alt(_) => Some("Alt".to_string()),
-                    _ => None,
-                }
-            },
-            _ => None,
-        };
-
-        // Prints modifier key
-        let modifier_str = match maybe_modifier {
-            Some(modifier) => modifier,
-            None => "".to_string(),
+            Some(modifier) if modifier_iter.all(|str| str == modifier) => modifier.to_string(),
+            _ => "".to_string(),
         };
         let no_modifier = modifier_str.is_empty();
+
+        // Prints modifier key
         let painted_modifier = if modifier_str.is_empty() {
             Style::new().paint("")
         } else {
@@ -165,7 +160,7 @@ impl ColoredElements {
         ret.push(self.text.paint(group_start_str));
 
         // Prints the keys
-        let key = keyvec
+        let key = keys
             .iter()
             .map(|key| {
                 if no_modifier {

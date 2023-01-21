@@ -73,7 +73,7 @@ impl StatusLine {
 
         let separator = if self.len == 0 { " " } else { " / " };
         let mut bits: Vec<ANSIString> = vec![colored_elements.text.paint(separator)];
-        bits.extend(colored_elements.style_key_with_modifier(&keys));
+        bits.extend(colored_elements.paint_keys(&keys));
         bits.push(colored_elements.text.bold().paint(format!(" {}", text)));
         let part = ANSIStrings(&bits);
 

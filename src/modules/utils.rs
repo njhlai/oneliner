@@ -111,6 +111,7 @@ pub fn get_keys_and_hints(mode_info: &ModeInfo) -> Vec<(String, String, Vec<Key>
     }
 
     match mode_info.mode {
+        InputMode::Locked => vec![(s("-- INTERFACE LOCKED --"), s("INTERFACE LOCKED"), vec![])],
         InputMode::Pane => {
             vec![
                 (s("Move focus"), s("Move"),

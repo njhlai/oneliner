@@ -1,4 +1,8 @@
+use std::str::FromStr;
+use std::string::ToString;
+
 use ansi_term::ANSIStrings;
+use strum::{Display, EnumIter, EnumProperty, IntoEnumIterator};
 use zellij_tile::prelude::*;
 use zellij_tile::prelude::actions::Action;
 
@@ -6,18 +10,64 @@ use super::status_line::StatusLine;
 use super::colored_elements::ColoredElements;
 use super::utils;
 
-#[derive(PartialEq)]
+#[derive(Clone, Copy, Display, EnumIter, EnumProperty, PartialEq)]
 pub enum KeyAction {
+    #[strum(props(input_mode="Locked"))]
     Lock,
+    #[strum(props(input_mode="Pane", initial_keymode="UnselectedAlternate"))]
     Pane,
+    #[strum(props(input_mode="Tab"))]
     Tab,
+    #[strum(props(input_mode="Resize", initial_keymode="UnselectedAlternate"))]
     Resize,
+    #[strum(props(input_mode="Move"))]
     Move,
+    #[strum(props(input_mode="Search", initial_keymode="UnselectedAlternate"))]
     Search,
+    #[strum(props(input_mode="Scroll", initial_keymode="UnselectedAlternate"))]
     Scroll,
+    #[strum(props(input_mode="Session"))]
     Session,
+    #[strum(props(input_mode="Tmux"))]
     Tmux,
+    #[strum(props(initial_keymode="UnselectedAlternate"))]
     Quit,
+}
+
+impl KeyAction {
+    fn initial_keymode(&self) -> KeyMode {
+        match self.get_str("initial_keymode") {
+            Some("UnselectedAlternate") => KeyMode::UnselectedAlternate,
+            _ => KeyMode::Unselected,
+        }
+    }
+
+    fn input_mode(&self) -> &str {
+        match self.get_str("input_mode") {
+            Some(text) => text,
+            None => "Normal",
+        }
+    }
+
+    fn action(&self) -> Action {
+        if *self == KeyAction::Quit {
+            Action::Quit
+        } else {
+            match InputMode::from_str(self.input_mode()) {
+                Ok(input_mode) => Action::SwitchToMode(input_mode),
+                _ => Action::SwitchToMode(InputMode::Normal),
+            }
+        }
+    }
+
+    fn key_shortcut(&self, keybinds: &Vec<(Key, Vec<Action>)>) -> KeyShortcut {
+        KeyShortcut::new(
+            // Unselect all initially by default
+            self.initial_keymode(),
+            *self,
+            utils::to_key(keybinds, &[self.action()]),
+        )
+    }
 }
 
 pub enum KeyMode {
@@ -38,19 +88,15 @@ impl KeyShortcut {
         KeyShortcut { mode, action, key }
     }
 
+    fn default_shortcuts(keybinds: &Vec<(Key, Vec<Action>)>) -> Vec<Self> {
+        // Unselect all by default
+        KeyAction::iter()
+            .map(|key_action| key_action.key_shortcut(keybinds))
+            .collect::<Vec<Self>>()
+    }
+
     fn full_text(&self) -> String {
-        match self.action {
-            KeyAction::Lock => String::from("LOCK"),
-            KeyAction::Pane => String::from("PANE"),
-            KeyAction::Tab => String::from("TAB"),
-            KeyAction::Resize => String::from("RESIZE"),
-            KeyAction::Move => String::from("MOVE"),
-            KeyAction::Search => String::from("SEARCH"),
-            KeyAction::Scroll => String::from("SCROLL"),
-            KeyAction::Session => String::from("SESSION"),
-            KeyAction::Tmux => String::from("TMUX"),
-            KeyAction::Quit => String::from("QUIT"),
-        }
+        self.action.to_string().to_uppercase()
     }
 
     fn letter_shortcut_and_count(&self, long: bool, with_prefix: bool) -> (String, usize) {
@@ -136,59 +182,7 @@ impl KeyShortcut {
 }
 
 pub fn generate_shortcuts(keybinds: &Vec<(Key, Vec<Action>)>, mode: &InputMode) -> Vec<KeyShortcut> {
-    // Unselect all by default
-    let mut shortcuts = vec![
-        KeyShortcut::new(
-            KeyMode::Unselected,
-            KeyAction::Lock,
-            utils::to_key(keybinds, &[Action::SwitchToMode(InputMode::Locked)]),
-        ),
-        KeyShortcut::new(
-            KeyMode::UnselectedAlternate,
-            KeyAction::Pane,
-            utils::to_key(keybinds, &[Action::SwitchToMode(InputMode::Pane)]),
-        ),
-        KeyShortcut::new(
-            KeyMode::Unselected,
-            KeyAction::Tab,
-            utils::to_key(keybinds, &[Action::SwitchToMode(InputMode::Tab)]),
-        ),
-        KeyShortcut::new(
-            KeyMode::UnselectedAlternate,
-            KeyAction::Resize,
-            utils::to_key(keybinds, &[Action::SwitchToMode(InputMode::Resize)]),
-        ),
-        KeyShortcut::new(
-            KeyMode::Unselected,
-            KeyAction::Move,
-            utils::to_key(keybinds, &[Action::SwitchToMode(InputMode::Move)]),
-        ),
-        KeyShortcut::new(
-            KeyMode::UnselectedAlternate,
-            KeyAction::Search,
-            utils::to_key(keybinds, &[Action::SwitchToMode(InputMode::Search)]),
-        ),
-        KeyShortcut::new(
-            KeyMode::UnselectedAlternate,
-            KeyAction::Scroll,
-            utils::to_key(keybinds, &[Action::SwitchToMode(InputMode::Scroll)]),
-        ),
-        KeyShortcut::new(
-            KeyMode::Unselected,
-            KeyAction::Session,
-            utils::to_key(keybinds, &[Action::SwitchToMode(InputMode::Session)]),
-        ),
-        KeyShortcut::new(
-            KeyMode::Unselected,
-            KeyAction::Tmux,
-            utils::to_key(keybinds, &[Action::SwitchToMode(InputMode::Tmux)]),
-        ),
-        KeyShortcut::new(
-            KeyMode::UnselectedAlternate,
-            KeyAction::Quit,
-            utils::to_key(keybinds, &[Action::Quit]),
-        ),
-    ];
+    let mut shortcuts = KeyShortcut::default_shortcuts(keybinds);
 
     let key_action = match mode {
         // Return on Normal mode

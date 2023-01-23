@@ -14,34 +14,26 @@ use super::utils;
 pub enum KeyAction {
     #[strum(props(input_mode="Locked"))]
     Lock,
-    #[strum(props(input_mode="Pane", initial_keymode="UnselectedAlternate"))]
+    #[strum(props(input_mode="Pane"))]
     Pane,
     #[strum(props(input_mode="Tab"))]
     Tab,
-    #[strum(props(input_mode="Resize", initial_keymode="UnselectedAlternate"))]
+    #[strum(props(input_mode="Resize"))]
     Resize,
     #[strum(props(input_mode="Move"))]
     Move,
-    #[strum(props(input_mode="Search", initial_keymode="UnselectedAlternate"))]
+    #[strum(props(input_mode="Search"))]
     Search,
-    #[strum(props(input_mode="Scroll", initial_keymode="UnselectedAlternate"))]
+    #[strum(props(input_mode="Scroll"))]
     Scroll,
     #[strum(props(input_mode="Session"))]
     Session,
     #[strum(props(input_mode="Tmux"))]
     Tmux,
-    #[strum(props(initial_keymode="UnselectedAlternate"))]
     Quit,
 }
 
 impl KeyAction {
-    fn initial_keymode(&self) -> KeyMode {
-        match self.get_str("initial_keymode") {
-            Some("UnselectedAlternate") => KeyMode::UnselectedAlternate,
-            _ => KeyMode::Unselected,
-        }
-    }
-
     fn input_mode(&self) -> &str {
         match self.get_str("input_mode") {
             Some(text) => text,
@@ -60,10 +52,10 @@ impl KeyAction {
         }
     }
 
-    fn key_shortcut(&self, keybinds: &Vec<(Key, Vec<Action>)>) -> KeyShortcut {
+    fn key_shortcut(&self, keybinds: &Vec<(Key, Vec<Action>)>, alternate: bool) -> KeyShortcut {
         KeyShortcut::new(
             // Unselect all initially by default
-            self.initial_keymode(),
+            if alternate { KeyMode::Unselected } else { KeyMode::UnselectedAlternate },
             *self,
             utils::to_key(keybinds, &[self.action()]),
         )
@@ -91,7 +83,8 @@ impl KeyShortcut {
     fn default_shortcuts(keybinds: &Vec<(Key, Vec<Action>)>) -> Vec<Self> {
         // Unselect all by default
         KeyAction::iter()
-            .map(|key_action| key_action.key_shortcut(keybinds))
+            .enumerate()
+            .map(|(i, key_action)| key_action.key_shortcut(keybinds, i % 2 == 0))
             .collect::<Vec<Self>>()
     }
 

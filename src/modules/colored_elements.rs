@@ -4,14 +4,15 @@ use zellij_tile_utils::style;
 
 #[derive(Clone, Copy)]
 pub struct ColoredElements {
+    // superkey
+    pub superkey_prefix: Style,
+    pub superkey_suffix_separator: Style,
+    // key shortcut
     pub selected: SegmentStyle,
     pub unselected: SegmentStyle,
     pub unselected_alternate: SegmentStyle,
     pub disabled: SegmentStyle,
-    // superkey
-    pub superkey_prefix: Style,
-    pub superkey_suffix_separator: Style,
-    // status
+    // hint
     pub modifier: Style,
     pub key: Style,
     pub text: Style,
@@ -49,6 +50,8 @@ impl ColoredElements {
 
         match palette.source {
             PaletteSource::Default => ColoredElements {
+                superkey_prefix: style!(foreground, background).bold(),
+                superkey_suffix_separator: style!(background, background),
                 selected: SegmentStyle {
                     prefix_separator: style!(background, palette.green),
                     char_left_separator: style!(background, palette.green).bold(),
@@ -81,14 +84,14 @@ impl ColoredElements {
                     styled_text: style!(background, palette.fg).dimmed().italic(),
                     suffix_separator: style!(palette.fg, background),
                 },
-                superkey_prefix: style!(foreground, background).bold(),
-                superkey_suffix_separator: style!(background, background),
                 modifier: style!(palette.orange, background).bold(),
                 key: style!(palette.green, background).bold(),
                 text: style!(foreground, background),
                 filler: style!(foreground, background),
             },
             PaletteSource::Xresources => ColoredElements {
+                superkey_prefix: style!(background, palette.fg).bold(),
+                superkey_suffix_separator: style!(palette.fg, background),
                 selected: SegmentStyle {
                     prefix_separator: style!(background, palette.green),
                     char_left_separator: style!(palette.fg, palette.green).bold(),
@@ -121,8 +124,6 @@ impl ColoredElements {
                     styled_text: style!(background, palette.fg).dimmed(),
                     suffix_separator: style!(palette.fg, background),
                 },
-                superkey_prefix: style!(background, palette.fg).bold(),
-                superkey_suffix_separator: style!(palette.fg, background),
                 modifier: style!(palette.orange, background).bold(),
                 key: style!(palette.green, background).bold(),
                 text: style!(foreground, background),

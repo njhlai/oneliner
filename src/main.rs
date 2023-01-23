@@ -47,7 +47,7 @@ impl ZellijPlugin for State {
         let status = StatusLine::build(
             mode_info,
             &(mode_info.get_mode_keybinds()),
-            ColoredElements::color_elements(&(mode_info.style.colors), !arrow_fonts),
+            ColoredElements::color_elements(&(mode_info.style.colors), arrow_fonts),
             arrow_fonts,
             separator,
             cols

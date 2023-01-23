@@ -15,6 +15,7 @@ pub struct ColoredElements {
     pub modifier: Style,
     pub key: Style,
     pub text: Style,
+    pub filler: Style,
 }
 
 #[derive(Clone, Copy)]
@@ -85,6 +86,7 @@ impl ColoredElements {
                 modifier: style!(palette.orange, background).bold(),
                 key: style!(palette.green, background).bold(),
                 text: style!(foreground, background),
+                filler: style!(foreground, background),
             },
             PaletteSource::Xresources => ColoredElements {
                 selected: SegmentStyle {
@@ -124,6 +126,7 @@ impl ColoredElements {
                 modifier: style!(palette.orange, background).bold(),
                 key: style!(palette.green, background).bold(),
                 text: style!(foreground, background),
+                filler: style!(foreground, background),
             },
         }
     }

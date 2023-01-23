@@ -81,35 +81,39 @@ impl StatusLine {
         self.len += ansi_term::unstyled_len(&part);
     }
 
-    fn shortcut_list_nonstandard_mode(&mut self, mode_info: &ModeInfo, colored_elements: ColoredElements, max_len: usize) {
+    fn nonstandard_mode_hints(&mut self, mode_info: &ModeInfo, colored_elements: ColoredElements, max_len: usize) {
         let keys_and_hints = utils::get_keys_and_hints(mode_info);
         let more_msg = colored_elements.text.paint(MORE_MSG);
         let is_locked_mode = mode_info.mode == InputMode::Locked;
 
-        let mut full_ver = StatusLine::default();
-        let mut short_ver = StatusLine::default();
+        let mut full_hints = StatusLine::default();
+        let mut short_hints = StatusLine::default();
         let mut is_full_overflowing = false;
         for (long, short, keys) in keys_and_hints.into_iter() {
             if !is_full_overflowing {
                 // Build the full version as long as it fits
-                full_ver.add_shortcut_keybindings(colored_elements, &long, keys.clone(), is_locked_mode);
-                is_full_overflowing = self.len + full_ver.len > max_len;
+                full_hints.add_shortcut_keybindings(colored_elements, &long, keys.clone(), is_locked_mode);
+                is_full_overflowing = self.len + full_hints.len > max_len;
             }
 
-            if self.len + short_ver.len + MORE_MSG.chars().count() > max_len {
+            if self.len + short_hints.len + MORE_MSG.chars().count() > max_len {
                 // StatusLine is long enough, finishing
-                self.part = format!("{}{}{}", self.part, short_ver.part, more_msg);
-                self.len += short_ver.len + MORE_MSG.chars().count();
+                self.part = format!("{}{}{}", self.part, short_hints.part, more_msg);
+                self.len += short_hints.len + MORE_MSG.chars().count();
                 return;
             }
             // Build the short version of StatusLine
-            short_ver.add_shortcut_keybindings(colored_elements, &short, keys, is_locked_mode);
+            short_hints.add_shortcut_keybindings(colored_elements, &short, keys, is_locked_mode);
         }
 
         // Return the full version if possible, otherwise return the short version
-        let actual_ver = if !is_full_overflowing { full_ver } else { short_ver };
-        self.part = format!("{}{}", self.part, actual_ver.part);
-        self.len += actual_ver.len;
+        let actual_hints = if !is_full_overflowing { full_hints } else { short_hints };
+        self.part = format!("{}{}", self.part, actual_hints.part);
+        self.len += actual_hints.len;
+    }
+
+    fn fill(&mut self, colored_elements: ColoredElements) {
+        self.part = format!("{}{}", self.part, colored_elements.filler.paint("\u{1b}[0K"));
     }
 
     pub fn build(mode_info: &ModeInfo, keybinds: &Vec<(Key, Vec<Action>)>, colored_elements: ColoredElements, arrow_fonts: bool, separator: &str, max_len: usize) -> StatusLine {
@@ -120,8 +124,11 @@ impl StatusLine {
         let shortcuts = key_shortcut::generate_shortcuts(keybinds, &mode_info.mode);
         status.shortcuts(shortcuts, colored_elements, separator, max_len);
 
-        // Append key binding for each nonstandard modes
-        status.shortcut_list_nonstandard_mode(mode_info, colored_elements, max_len);
+        // Append key bindings and hints for each nonstandard modes
+        status.nonstandard_mode_hints(mode_info, colored_elements, max_len);
+
+        // Fill the rest of the line
+        status.fill(colored_elements);
 
         status
     }

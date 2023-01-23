@@ -1,11 +1,13 @@
 use zellij_tile::prelude::*;
 use zellij_tile::prelude::actions::{Action, SearchDirection, SearchOption};
 
-pub fn filter_get_superkey(key: &Key, vac: &Vec<Action>) -> Option<&'static str> {
-    match vac.first() {
+pub fn filter_get_superkey(entry: &(Key, Vec<Action>)) -> Option<&'static str> {
+    match entry.1.first() {
         // No actions defined, ignore
         None => None,
         Some(action) => {
+            let key = entry.0;
+
             // Ignore certain "default" keybindings that switch back to normal InputMode.
             // These include: ' ', '\n', 'Esc'
             if matches!(key, Key::Char(' ') | Key::Char('\n') | Key::Esc) {

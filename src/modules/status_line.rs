@@ -27,7 +27,7 @@ impl StatusLine {
         let mut superkeys = keybinds
             .iter()
             // Keep only `SwitchToMode` and `Quit` key-action entries and map to its superkey
-            .filter_map(|(key, vac)| utils::filter_get_superkey(key, vac));
+            .filter_map(utils::filter_get_superkey);
 
         let prefix_text = match superkeys.next() {
             // Check if all superkeys are the same, if keys exist

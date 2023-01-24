@@ -1,6 +1,6 @@
 use std::fmt::{Display, Error, Formatter};
 
-use ansi_term::{ANSIString, ANSIStrings};
+use ansi_term::ANSIStrings;
 use zellij_tile::prelude::*;
 use zellij_tile::prelude::actions::Action;
 
@@ -23,33 +23,32 @@ impl Display for StatusLine {
 }
 
 impl StatusLine {
-    fn superkey(keybinds: &Vec<(Key, Vec<Action>)>, colored_elements: ColoredElements, separator: &str, arrow_fonts: bool) -> StatusLine {
+    fn superkey(keybinds: &Vec<(Key, Vec<Action>)>, colored_elements: ColoredElements, separator: &str, simplified_ui: bool) -> StatusLine {
         let mut superkeys = keybinds
             .iter()
             // Keep only `SwitchToMode` and `Quit` key-action entries and map to its superkey
             .filter_map(utils::filter_get_superkey);
 
-        let prefix_text = match superkeys.next() {
+        match superkeys.next() {
             // Check if all superkeys are the same, if keys exist
             Some(superkey) if superkeys.all(|str| str == superkey) => {
-                if arrow_fonts {
-                    // Add extra space in simplified ui
-                    format!(" {} + ", superkey.to_string())
-                } else {
-                    format!(" {} +", superkey.to_string())
+                let prefix_text = format!(
+                    " {} +{}",
+                    superkey.to_string(),
+                    if simplified_ui { " " } else { "" }
+                );
+
+                let prefix = colored_elements.superkey_prefix.paint(&prefix_text);
+                let suffix_separator = colored_elements.superkey_suffix_separator.paint(separator);
+
+                StatusLine {
+                    part: ANSIStrings(&[prefix, suffix_separator]).to_string(),
+                    len: prefix_text.chars().count() // Superkey
+                        + separator.chars().count(), // Separator
                 }
             },
             // Otherwise, don't print superkey
-            _ => return StatusLine::default(),
-        };
-
-        let prefix = colored_elements.superkey_prefix.paint(&prefix_text);
-        let suffix_separator = colored_elements.superkey_suffix_separator.paint(separator);
-
-        StatusLine {
-            part: ANSIStrings(&[prefix, suffix_separator]).to_string(),
-            len: prefix_text.chars().count() // Superkey
-                + separator.chars().count(), // Separator
+            _ => StatusLine::default(),
         }
     }
 
@@ -72,7 +71,7 @@ impl StatusLine {
         if keys.is_empty() && !is_locked_mode { return; }
 
         let separator = if self.len == 0 { " " } else { " / " };
-        let mut bits: Vec<ANSIString> = vec![colored_elements.text.paint(separator)];
+        let mut bits = vec![colored_elements.text.paint(separator)];
         bits.extend(colored_elements.paint_keys(&keys));
         bits.push(colored_elements.text.bold().paint(format!(" {}", text)));
         let part = ANSIStrings(&bits);
@@ -116,9 +115,9 @@ impl StatusLine {
         self.part = format!("{}{}", self.part, colored_elements.filler.paint("\u{1b}[0K"));
     }
 
-    pub fn build(mode_info: &ModeInfo, keybinds: &Vec<(Key, Vec<Action>)>, colored_elements: ColoredElements, arrow_fonts: bool, separator: &str, max_len: usize) -> StatusLine {
+    pub fn build(mode_info: &ModeInfo, keybinds: &Vec<(Key, Vec<Action>)>, colored_elements: ColoredElements, simplified_ui: bool, separator: &str, max_len: usize) -> StatusLine {
         // Initial StatusLine with superkey indicator
-        let mut status = Self::superkey(keybinds, colored_elements, separator, arrow_fonts);
+        let mut status = Self::superkey(keybinds, colored_elements, separator, simplified_ui);
 
         // Append shortcuts to status
         let shortcuts = key_shortcut::generate_shortcuts(keybinds, &mode_info.mode);

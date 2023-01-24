@@ -41,15 +41,14 @@ impl ZellijPlugin for State {
 
     fn render(&mut self, _rows: usize, cols: usize) {
         let mode_info = &(self.mode_info);
-        let arrow_fonts = mode_info.capabilities.arrow_fonts;
-        let separator = if !arrow_fonts { ARROW_SEPARATOR } else { "" };
+        let simplified_ui = mode_info.capabilities.arrow_fonts;
 
         let status = StatusLine::build(
             mode_info,
             &(mode_info.get_mode_keybinds()),
-            ColoredElements::color_elements(&(mode_info.style.colors), arrow_fonts),
-            arrow_fonts,
-            separator,
+            ColoredElements::color_elements(&(mode_info.style.colors), simplified_ui),
+            simplified_ui,
+            if !simplified_ui { ARROW_SEPARATOR } else { "" },
             cols
         );
         print!("{}", status);

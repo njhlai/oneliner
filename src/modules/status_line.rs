@@ -95,7 +95,7 @@ impl StatusLine {
                 is_full_overflowing = self.len + full_hints.len > max_len;
             }
 
-            if self.len + short_hints.len + MORE_MSG.chars().count() > max_len {
+            if self.len + short_hints.len + 6 + keys.len() + short.chars().count() + MORE_MSG.chars().count() > max_len {
                 // StatusLine is long enough, finishing
                 self.part = format!("{}{}{}", self.part, short_hints.part, more_msg);
                 self.len += short_hints.len + MORE_MSG.chars().count();

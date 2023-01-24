@@ -9,6 +9,7 @@ use super::key_shortcut::{self, KeyShortcut};
 use super::utils;
 
 static MORE_MSG: &str = " ... ";
+static MINIMAL_LENGTH_FOR_FULL_SHORTCUT_PRINTING: usize = 136;
 
 #[derive(Default)]
 pub struct StatusLine {
@@ -58,7 +59,13 @@ impl StatusLine {
 
         for shortcut in shortcuts {
             // Build up StatusLine one shortcut at a time
-            let shortcut_status = shortcut.generate_status(colored_elements, separator, max_len > 110, shared_super, line_empty);
+            let shortcut_status = shortcut.generate_status(
+                colored_elements,
+                separator,
+                max_len > MINIMAL_LENGTH_FOR_FULL_SHORTCUT_PRINTING,
+                shared_super,
+                line_empty
+            );
 
             // Append to self
             self.part = format!("{}{}", self.part, shortcut_status.part);

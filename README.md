@@ -14,16 +14,16 @@ This is a soft fork of Zellij's default [status-bar](https://github.com/zellij-o
 To build from source, clone this repository, and then run:
 ```sh
 # Build the plugin
-> cargo build --release --locked
+cargo build --release --locked
 ```
 
 ### Install
 To install the plugin, run:
 ```sh
 # Get the plugin directory from Zellij's config
-> zellij setup --check
+zellij setup --check
 # Copy the plugin over to the [PLUGIN DIR] specified above
-> cp /path/to/repo/target/wasm32-wasi/release/oneliner.wasm [PLUGIN DIR]
+cp /path/to/repo/target/wasm32-wasi/release/oneliner.wasm [PLUGIN DIR]
 ```
 
 ### Setup
@@ -50,7 +50,7 @@ layout {
 To test the plugin in dev mode:
 ```sh
 # Build the plugin in dev mode
-> cargo build
+cargo build
 # Running in Zellij with provided layout for testing
-> zellij -l plugin.yaml
+zellij -l plugin.yaml
 ```

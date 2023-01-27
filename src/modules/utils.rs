@@ -38,11 +38,11 @@ pub fn filter_get_superkey(entry: &(Key, Vec<Action>)) -> Option<&'static str> {
             };
 
             if is_mode_switch_or_quit_action {
-                return match key {
+                match key {
                     Key::Ctrl(_) => Some("Ctrl"),
                     Key::Alt(_) => Some("Alt"),
                     _ => None,
-                };
+                }
             } else { None }
         },
     }
@@ -74,10 +74,8 @@ fn action_key_group(keybinds: &[(Key, Vec<Action>)], actions: &[&[Action]]) -> V
 pub fn to_key(keybinds: &[(Key, Vec<Action>)], action: &[Action]) -> Option<Key> {
     action_key(keybinds, action)
         .into_iter()
-        // Filter out certain "default" keybindings: ' ', '\n', 'Esc'
-        .filter(|key| !matches!(key, Key::Char(' ') | Key::Char('\n') | Key::Esc))
-        // Get only the first Key
-        .next()
+        // Get the first Key which is not the "default" keybindings: ' ', '\n', 'Esc'
+        .find(|key| !matches!(key, Key::Char(' ') | Key::Char('\n') | Key::Esc))
 }
 
 #[rustfmt::skip]
@@ -106,10 +104,10 @@ pub fn get_keys_and_hints(mode_info: &ModeInfo) -> Vec<(String, String, Vec<Key>
         if !known_actions.contains(&actions) {
             known_actions.push(actions.to_vec());
             km.push((key, actions));
-        } else if (&actions).as_slice() == &[Action::GoToNextTab] && &key == &Key::Right {
+        } else if *actions.as_slice() == [Action::GoToNextTab] && key == Key::Right {
             // Modify known key-action only if it's GoToNextTab action
             // Assumption: If Key::Right is configured for GoToNextTab, assume Key::Left is also configured for GoToPreviousTab
-            km.retain(|(_, a)| a.as_slice() != &[Action::GoToNextTab]);
+            km.retain(|(_, a)| *a.as_slice() != [Action::GoToNextTab]);
             km.push((key, actions));
         }
     }

@@ -168,12 +168,12 @@ impl ColoredElements {
             .iter()
             .map(|key| {
                 if no_modifier {
-                    format!("{}", key)
+                    format!("{key}")
                 } else {
                     match key {
                         Key::Ctrl(c) => format!("{}", Key::Char(*c)),
-                        Key::Alt(c) => format!("{}", c),
-                        _ => format!("{}", key),
+                        Key::Alt(c) => format!("{c}"),
+                        _ => format!("{key}"),
                     }
                 }
             })

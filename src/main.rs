@@ -51,6 +51,6 @@ impl ZellijPlugin for State {
             if !simplified_ui { ARROW_SEPARATOR } else { "" },
             cols
         );
-        print!("{}", status);
+        print!("{status}");
     }
 }

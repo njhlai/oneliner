@@ -52,7 +52,7 @@ impl KeyAction {
         }
     }
 
-    fn key_shortcut(&self, keybinds: &Vec<(Key, Vec<Action>)>, alternate: bool) -> KeyShortcut {
+    fn key_shortcut(&self, keybinds: &[(Key, Vec<Action>)], alternate: bool) -> KeyShortcut {
         KeyShortcut::new(
             // Unselect all initially by default
             if alternate { KeyMode::Unselected } else { KeyMode::UnselectedAlternate },
@@ -80,7 +80,7 @@ impl KeyShortcut {
         KeyShortcut { mode, action, key }
     }
 
-    fn default_shortcuts(keybinds: &Vec<(Key, Vec<Action>)>) -> Vec<Self> {
+    fn default_shortcuts(keybinds: &[(Key, Vec<Action>)]) -> Vec<Self> {
         // Unselect all by default
         KeyAction::iter()
             .enumerate()
@@ -99,13 +99,13 @@ impl KeyShortcut {
         };
 
         let key_binding = if with_prefix {
-            format!("{}", key)
+            format!("{key}")
         } else {
             match key {
-                Key::F(c) => format!("{}", c),
-                Key::Ctrl(c) => format!("{}", c),
-                Key::Char(_) => format!("{}", key),
-                Key::Alt(c) => format!("{}", c),
+                Key::F(c) => format!("{c}"),
+                Key::Ctrl(c) => format!("{c}"),
+                Key::Char(_) => format!("{key}"),
+                Key::Alt(c) => format!("{c}"),
                 _ => String::from("??"),
             }
         };
@@ -114,7 +114,7 @@ impl KeyShortcut {
         if long {
             (key_binding, count)
         } else {
-            (format!(" {} ", key_binding), count + 2)
+            (format!(" {key_binding} "), count + 2)
         }
     }
 
@@ -141,7 +141,7 @@ impl KeyShortcut {
         if long {
             let char_left_separator = colors.char_left_separator.paint(" <".to_string());
             let char_right_separator = colors.char_right_separator.paint("> ".to_string());
-            let styled_text = colors.styled_text.paint(format!("{} ", key_hint));
+            let styled_text = colors.styled_text.paint(format!("{key_hint} "));
 
             // Full form printing
             StatusLine {
@@ -174,7 +174,7 @@ impl KeyShortcut {
     }
 }
 
-pub fn generate_shortcuts(keybinds: &Vec<(Key, Vec<Action>)>, mode: &InputMode) -> Vec<KeyShortcut> {
+pub fn generate_shortcuts(keybinds: &[(Key, Vec<Action>)], mode: &InputMode) -> Vec<KeyShortcut> {
     let mut shortcuts = KeyShortcut::default_shortcuts(keybinds);
 
     let key_action = match mode {

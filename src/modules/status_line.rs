@@ -24,7 +24,7 @@ impl Display for StatusLine {
 }
 
 impl StatusLine {
-    fn superkey(keybinds: &Vec<(Key, Vec<Action>)>, colored_elements: ColoredElements, separator: &str, simplified_ui: bool) -> StatusLine {
+    fn superkey(keybinds: &[(Key, Vec<Action>)], colored_elements: ColoredElements, separator: &str, simplified_ui: bool) -> StatusLine {
         let mut superkeys = keybinds
             .iter()
             // Keep only `SwitchToMode` and `Quit` key-action entries and map to its superkey
@@ -33,11 +33,7 @@ impl StatusLine {
         match superkeys.next() {
             // Check if all superkeys are the same, if keys exist
             Some(superkey) if superkeys.all(|str| str == superkey) => {
-                let prefix_text = format!(
-                    " {} +{}",
-                    superkey.to_string(),
-                    if simplified_ui { " " } else { "" }
-                );
+                let prefix_text = format!(" {superkey} +{}", if simplified_ui { " " } else { "" });
 
                 let prefix = colored_elements.superkey_prefix.paint(&prefix_text);
                 let suffix_separator = colored_elements.superkey_suffix_separator.paint(separator);
@@ -80,10 +76,10 @@ impl StatusLine {
         let separator = if self.len == 0 { " " } else { " / " };
         let mut bits = vec![colored_elements.text.paint(separator)];
         bits.extend(colored_elements.paint_keys(&keys));
-        bits.push(colored_elements.text.bold().paint(format!(" {}", text)));
+        bits.push(colored_elements.text.bold().paint(format!(" {text}")));
         let part = ANSIStrings(&bits);
 
-        self.part = format!("{}{}", self.part, part.to_string());
+        self.part = format!("{}{}", self.part, part);
         self.len += ansi_term::unstyled_len(&part);
     }
 
@@ -122,7 +118,7 @@ impl StatusLine {
         self.part = format!("{}{}", self.part, colored_elements.filler.paint("\u{1b}[0K"));
     }
 
-    pub fn build(mode_info: &ModeInfo, keybinds: &Vec<(Key, Vec<Action>)>, colored_elements: ColoredElements, simplified_ui: bool, separator: &str, max_len: usize) -> StatusLine {
+    pub fn build(mode_info: &ModeInfo, keybinds: &[(Key, Vec<Action>)], colored_elements: ColoredElements, simplified_ui: bool, separator: &str, max_len: usize) -> StatusLine {
         // Initial StatusLine with superkey indicator
         let mut status = Self::superkey(keybinds, colored_elements, separator, simplified_ui);
 

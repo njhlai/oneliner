@@ -10,7 +10,7 @@ pub fn filter_get_superkey(entry: &(Key, Vec<Action>)) -> Option<&'static str> {
 
             // Ignore certain "default" keybindings that switch back to normal InputMode.
             // These include: ' ', '\n', 'Esc'
-            if matches!(key, Key::Char(' ') | Key::Char('\n') | Key::Esc) {
+            if matches!(key, Key::Char(' ' | '\n') | Key::Esc) {
                 return None;
             }
 
@@ -75,10 +75,9 @@ pub fn to_key(keybinds: &[(Key, Vec<Action>)], action: &[Action]) -> Option<Key>
         .find(|key| !matches!(key, Key::Char(' ') | Key::Char('\n') | Key::Esc))
 }
 
-#[rustfmt::skip]
 pub fn get_keys_and_hints(mode_info: &ModeInfo) -> Vec<(String, String, Vec<Key>)> {
     let mut old_keymap = mode_info.get_mode_keybinds();
-    let s = |string: &str| string.to_string();
+    let s = ToString::to_string;
 
     // Find a keybinding to get back to "Normal" input mode, before keymap deduplication below.
     // Prefer '\n' over other choices.
@@ -99,7 +98,7 @@ pub fn get_keys_and_hints(mode_info: &ModeInfo) -> Vec<(String, String, Vec<Key>
     let mut km = Vec::<(Key, Vec<Action>)>::new();
     for (key, actions) in old_keymap {
         if !known_actions.contains(&actions) {
-            known_actions.push(actions.to_vec());
+            known_actions.push(actions.clone());
             km.push((key, actions));
         } else if *actions.as_slice() == [Action::GoToNextTab] && key == Key::Right {
             // Modify known key-action only if it's GoToNextTab action

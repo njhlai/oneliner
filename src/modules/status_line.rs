@@ -25,7 +25,7 @@ impl Display for StatusLine {
 
 impl StatusLine {
     fn superkey(
-        keybinds: &[(Key, Vec<Action>)], colored_elements: ColoredElements, separator: &str, simplified_ui: bool,
+        keybinds: &[(Key, Vec<Action>)], colored_elements: &ColoredElements, separator: &str, simplified_ui: bool,
     ) -> StatusLine {
         let mut superkeys = keybinds
             .iter()
@@ -51,7 +51,7 @@ impl StatusLine {
         }
     }
 
-    fn shortcuts(&mut self, shortcuts: Vec<KeyShortcut>, colored_elements: ColoredElements, separator: &str, max_len: usize) {
+    fn shortcuts(&mut self, shortcuts: Vec<KeyShortcut>, colored_elements: &ColoredElements, separator: &str, max_len: usize) {
         let shared_super = self.len > 0;
         let mut line_empty = self.len == 0;
 
@@ -72,12 +72,12 @@ impl StatusLine {
         }
     }
 
-    fn add_shortcut_keybindings(&mut self, colored_elements: ColoredElements, text: &str, keys: Vec<Key>, is_locked_mode: bool) {
+    fn add_shortcut_keybindings(&mut self, colored_elements: &ColoredElements, text: &str, keys: &[Key], is_locked_mode: bool) {
         if keys.is_empty() && !is_locked_mode { return; }
 
         let separator = if self.len == 0 { " " } else { " / " };
         let mut bits = vec![colored_elements.text.paint(separator)];
-        bits.extend(colored_elements.paint_keys(&keys));
+        bits.extend(colored_elements.paint_keys(keys));
         bits.push(colored_elements.text.bold().paint(format!(" {text}")));
         let part = ANSIStrings(&bits);
 
@@ -85,7 +85,7 @@ impl StatusLine {
         self.len += ansi_term::unstyled_len(&part);
     }
 
-    fn nonstandard_mode_hints(&mut self, mode_info: &ModeInfo, colored_elements: ColoredElements, max_len: usize) {
+    fn nonstandard_mode_hints(&mut self, mode_info: &ModeInfo, colored_elements: &ColoredElements, max_len: usize) {
         let keys_and_hints = utils::get_keys_and_hints(mode_info);
         let more_msg = colored_elements.text.paint(MORE_MSG);
         let is_locked_mode = mode_info.mode == InputMode::Locked;
@@ -96,7 +96,7 @@ impl StatusLine {
         for (long, short, keys) in keys_and_hints.into_iter() {
             if !is_full_overflowing {
                 // Build the full version as long as it fits
-                full_hints.add_shortcut_keybindings(colored_elements, &long, keys.clone(), is_locked_mode);
+                full_hints.add_shortcut_keybindings(colored_elements, &long, &keys, is_locked_mode);
                 is_full_overflowing = self.len + full_hints.len > max_len;
             }
 
@@ -107,21 +107,21 @@ impl StatusLine {
                 return;
             }
             // Build the short version of StatusLine
-            short_hints.add_shortcut_keybindings(colored_elements, &short, keys, is_locked_mode);
+            short_hints.add_shortcut_keybindings(colored_elements, &short, &keys, is_locked_mode);
         }
 
         // Return the full version if possible, otherwise return the short version
-        let actual_hints = if !is_full_overflowing { full_hints } else { short_hints };
+        let actual_hints = if is_full_overflowing { short_hints } else { full_hints };
         self.part = format!("{}{}", self.part, actual_hints.part);
         self.len += actual_hints.len;
     }
 
-    fn fill(&mut self, colored_elements: ColoredElements) {
+    fn fill(&mut self, colored_elements: &ColoredElements) {
         self.part = format!("{}{}", self.part, colored_elements.filler.paint("\u{1b}[0K"));
     }
 
     pub fn build(
-        mode_info: &ModeInfo, keybinds: &[(Key, Vec<Action>)], colored_elements: ColoredElements, simplified_ui: bool,
+        mode_info: &ModeInfo, keybinds: &[(Key, Vec<Action>)], colored_elements: &ColoredElements, simplified_ui: bool,
         separator: &str, max_len: usize,
     ) -> StatusLine {
         // Initial StatusLine with superkey indicator

@@ -119,7 +119,7 @@ impl KeyShortcut {
     }
 
     pub fn generate_status(
-        &self, colored_elements: ColoredElements, separator: &str, long: bool, with_prefix: bool, first_tile: bool,
+        &self, colored_elements: &ColoredElements, separator: &str, long: bool, with_prefix: bool, first_tile: bool,
     ) -> StatusLine {
         let key_hint = self.full_text();
         let (key_binding, count) = match (&self.mode, &self.key) {

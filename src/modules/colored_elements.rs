@@ -148,7 +148,7 @@ impl ColoredElements {
         let modifier_str = match modifier_iter.next() {
             // Check if all modifiers are the same, if keys exist
             Some(modifier) if modifier_iter.all(|str| str == modifier) => modifier.to_string(),
-            _ => "".to_string(),
+            _ => String::new(),
         };
         let no_modifier = modifier_str.is_empty();
 
@@ -183,11 +183,7 @@ impl ColoredElements {
         let key_string = key.join("");
         let key_separator = match &key_string[..] {
             // Special handling of some pre-defined keygroups
-            "HJKL" => "",
-            "hjkl" => "",
-            "←↓↑→" => "",
-            "←→" => "",
-            "↓↑" => "",
+            "HJKL" | "hjkl" | "←↓↑→" | "←→" | "↓↑" => "",
             // Default separator
             _ => "|",
         };

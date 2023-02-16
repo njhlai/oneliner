@@ -137,13 +137,14 @@ impl ColoredElements {
 
         let mut ret = vec![];
 
-        let mut modifier_iter = keys.iter()
+        let mut modifier_iter = keys
+            .iter()
             // Filter and retain only modifier keys
-            .filter_map(|key| { match key {
+            .filter_map(|key| match key {
                 Key::Ctrl(_) => Some("Ctrl"),
                 Key::Alt(_) => Some("Alt"),
                 _ => None,
-            }});
+            });
         let modifier_str = match modifier_iter.next() {
             // Check if all modifiers are the same, if keys exist
             Some(modifier) if modifier_iter.all(|str| str == modifier) => modifier.to_string(),

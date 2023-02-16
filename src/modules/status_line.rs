@@ -1,8 +1,8 @@
 use std::fmt::{Display, Error, Formatter};
 
 use ansi_term::ANSIStrings;
-use zellij_tile::prelude::*;
 use zellij_tile::prelude::actions::Action;
+use zellij_tile::prelude::*;
 
 use super::colored_elements::ColoredElements;
 use super::key_shortcut::{self, KeyShortcut};
@@ -24,7 +24,9 @@ impl Display for StatusLine {
 }
 
 impl StatusLine {
-    fn superkey(keybinds: &[(Key, Vec<Action>)], colored_elements: ColoredElements, separator: &str, simplified_ui: bool) -> StatusLine {
+    fn superkey(
+        keybinds: &[(Key, Vec<Action>)], colored_elements: ColoredElements, separator: &str, simplified_ui: bool,
+    ) -> StatusLine {
         let mut superkeys = keybinds
             .iter()
             // Keep only `SwitchToMode` and `Quit` key-action entries and map to its superkey
@@ -43,7 +45,7 @@ impl StatusLine {
                     len: prefix_text.chars().count() // Superkey
                         + separator.chars().count(), // Separator
                 }
-            },
+            }
             // Otherwise, don't print superkey
             _ => StatusLine::default(),
         }
@@ -60,7 +62,7 @@ impl StatusLine {
                 separator,
                 max_len > MINIMAL_LENGTH_FOR_FULL_SHORTCUT_PRINTING,
                 shared_super,
-                line_empty
+                line_empty,
             );
 
             // Append to self
@@ -118,7 +120,10 @@ impl StatusLine {
         self.part = format!("{}{}", self.part, colored_elements.filler.paint("\u{1b}[0K"));
     }
 
-    pub fn build(mode_info: &ModeInfo, keybinds: &[(Key, Vec<Action>)], colored_elements: ColoredElements, simplified_ui: bool, separator: &str, max_len: usize) -> StatusLine {
+    pub fn build(
+        mode_info: &ModeInfo, keybinds: &[(Key, Vec<Action>)], colored_elements: ColoredElements, simplified_ui: bool,
+        separator: &str, max_len: usize,
+    ) -> StatusLine {
         // Initial StatusLine with superkey indicator
         let mut status = Self::superkey(keybinds, colored_elements, separator, simplified_ui);
 

@@ -3,32 +3,32 @@ use std::string::ToString;
 
 use ansi_term::ANSIStrings;
 use strum::{Display, EnumIter, EnumProperty, IntoEnumIterator};
-use zellij_tile::prelude::*;
 use zellij_tile::prelude::actions::Action;
+use zellij_tile::prelude::*;
 
-use super::status_line::StatusLine;
 use super::colored_elements::ColoredElements;
+use super::status_line::StatusLine;
 use super::utils;
 
 #[derive(Clone, Copy, Display, EnumIter, EnumProperty, PartialEq)]
 pub enum KeyAction {
-    #[strum(props(input_mode="Locked"))]
+    #[strum(props(input_mode = "Locked"))]
     Lock,
-    #[strum(props(input_mode="Pane"))]
+    #[strum(props(input_mode = "Pane"))]
     Pane,
-    #[strum(props(input_mode="Tab"))]
+    #[strum(props(input_mode = "Tab"))]
     Tab,
-    #[strum(props(input_mode="Resize"))]
+    #[strum(props(input_mode = "Resize"))]
     Resize,
-    #[strum(props(input_mode="Move"))]
+    #[strum(props(input_mode = "Move"))]
     Move,
-    #[strum(props(input_mode="Search"))]
+    #[strum(props(input_mode = "Search"))]
     Search,
-    #[strum(props(input_mode="Scroll"))]
+    #[strum(props(input_mode = "Scroll"))]
     Scroll,
-    #[strum(props(input_mode="Session"))]
+    #[strum(props(input_mode = "Session"))]
     Session,
-    #[strum(props(input_mode="Tmux"))]
+    #[strum(props(input_mode = "Tmux"))]
     Tmux,
     Quit,
 }
@@ -118,7 +118,9 @@ impl KeyShortcut {
         }
     }
 
-    pub fn generate_status(&self, colored_elements: ColoredElements, separator: &str, long: bool, with_prefix: bool, first_tile: bool) -> StatusLine {
+    pub fn generate_status(
+        &self, colored_elements: ColoredElements, separator: &str, long: bool, with_prefix: bool, first_tile: bool,
+    ) -> StatusLine {
         let key_hint = self.full_text();
         let (key_binding, count) = match (&self.mode, &self.key) {
             // Disabled or unreachable mode, don't print

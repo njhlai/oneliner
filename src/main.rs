@@ -28,12 +28,12 @@ impl ZellijPlugin for State {
             Event::ModeUpdate(mode_info) => {
                 should_render = self.mode_info != mode_info;
                 self.mode_info = mode_info;
-            },
+            }
             Event::TabUpdate(tabs) => {
                 should_render = self.tabs != tabs;
                 self.tabs = tabs;
-            },
-            _ => {},
+            }
+            _ => {}
         }
 
         should_render
@@ -49,7 +49,7 @@ impl ZellijPlugin for State {
             ColoredElements::color_elements(&(mode_info.style.colors), simplified_ui),
             simplified_ui,
             if !simplified_ui { ARROW_SEPARATOR } else { "" },
-            cols
+            cols,
         );
         print!("{status}");
     }

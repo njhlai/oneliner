@@ -1,5 +1,5 @@
-use zellij_tile::prelude::*;
 use zellij_tile::prelude::actions::{Action, SearchDirection, SearchOption};
+use zellij_tile::prelude::*;
 
 pub fn filter_get_superkey(entry: &(Key, Vec<Action>)) -> Option<&'static str> {
     match entry.1.first() {
@@ -20,17 +20,17 @@ pub fn filter_get_superkey(entry: &(Key, Vec<Action>)) -> Option<&'static str> {
                     matches!(
                         mode,
                         InputMode::Normal
-                        | InputMode::Locked
-                        | InputMode::Pane
-                        | InputMode::Tab
-                        | InputMode::Resize
-                        | InputMode::Move
-                        | InputMode::Search
-                        | InputMode::Scroll
-                        | InputMode::Session
-                        | InputMode::Tmux
+                            | InputMode::Locked
+                            | InputMode::Pane
+                            | InputMode::Tab
+                            | InputMode::Resize
+                            | InputMode::Move
+                            | InputMode::Search
+                            | InputMode::Scroll
+                            | InputMode::Session
+                            | InputMode::Tmux
                     )
-                },
+                }
                 // `Quit` action
                 Action::Quit => true,
                 // Not a `SwitchToMode` or `Quit` action, ignore
@@ -43,21 +43,18 @@ pub fn filter_get_superkey(entry: &(Key, Vec<Action>)) -> Option<&'static str> {
                     Key::Alt(_) => Some("Alt"),
                     _ => None,
                 }
-            } else { None }
-        },
+            } else {
+                None
+            }
+        }
     }
 }
 
 fn action_key(keybinds: &[(Key, Vec<Action>)], action: &[Action]) -> Vec<Key> {
-    keybinds.iter()
+    keybinds
+        .iter()
         // Get keybinds which match specified action
-        .filter_map(|(key, actions)| {
-            if actions.as_slice() == action {
-                Some(*key)
-            } else {
-                None
-            }
-        })
+        .filter_map(|(key, actions)| if actions.as_slice() == action { Some(*key) } else { None })
         .collect::<Vec<Key>>()
 }
 

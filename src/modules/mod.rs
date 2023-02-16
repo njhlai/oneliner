@@ -1,4 +1,4 @@
 pub mod colored_elements;
-pub mod status_line;
 mod key_shortcut;
+pub mod status_line;
 mod utils;

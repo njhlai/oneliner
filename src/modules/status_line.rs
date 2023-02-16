@@ -68,7 +68,7 @@ impl StatusLine {
             // Append to self
             self.part = format!("{}{}", self.part, shortcut_status.part);
             self.len += shortcut_status.len;
-            if line_empty { line_empty = self.len == 0; }
+            line_empty = line_empty && self.len == 0;
         }
     }
 

@@ -153,7 +153,7 @@ pub fn get_keys_and_hints(mode_info: &ModeInfo) -> Vec<(String, String, Vec<Key>
                     &[Action::GoToPreviousTab], &[Action::GoToNextTab]
                 ])),
                 (s("New"), s("New"), action_key(&km, &[
-                    Action::NewTab(None, None), Action::SwitchToMode(InputMode::Normal)
+                    Action::NewTab(None, vec![], None, None, None), Action::SwitchToMode(InputMode::Normal)
                 ])),
                 (s("Close"), s("Close"), action_key(&km, &[
                     Action::CloseTab, Action::SwitchToMode(InputMode::Normal)]
@@ -269,7 +269,7 @@ pub fn get_keys_and_hints(mode_info: &ModeInfo) -> Vec<(String, String, Vec<Key>
                     Action::ToggleFocusFullscreen, Action::SwitchToMode(InputMode::Normal)
                 ])),
                 (s("New tab"), s("New"), action_key(&km, &[
-                    Action::NewTab(None, None), Action::SwitchToMode(InputMode::Normal)
+                    Action::NewTab(None, vec![], None, None, None), Action::SwitchToMode(InputMode::Normal)
                 ])),
                 (s("Rename tab"), s("Rename"), action_key(&km, &[
                     Action::SwitchToMode(InputMode::RenameTab), Action::TabNameInput(vec![0])

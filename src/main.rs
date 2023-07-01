@@ -2,8 +2,8 @@ mod modules;
 
 use zellij_tile::prelude::*;
 
-use crate::modules::colored_elements::ColoredElements;
-use crate::modules::status_line::StatusLine;
+use modules::colored_elements::ColoredElements;
+use modules::status_line::StatusLine;
 
 static ARROW_SEPARATOR: &str = "";
 

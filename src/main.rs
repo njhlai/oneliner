@@ -16,7 +16,7 @@ struct State {
 register_plugin!(State);
 
 impl ZellijPlugin for State {
-    fn load(&mut self) {
+    fn load(&mut self, _: std::collections::BTreeMap<String, String>) {
         set_selectable(false);
         subscribe(&[EventType::ModeUpdate, EventType::TabUpdate]);
     }

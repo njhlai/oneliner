@@ -112,12 +112,12 @@ pub fn get_keys_and_hints(mode_info: &ModeInfo) -> Vec<(String, String, Vec<Key>
         InputMode::Locked => vec![(s("-- INTERFACE LOCKED --"), s("INTERFACE LOCKED"), vec![])],
         InputMode::Pane => {
             vec![
+                (s("New"), s("New"), action_key(&km, &[
+                    Action::NewPane(None, None), Action::SwitchToMode(InputMode::Normal)
+                ])),
                 (s("Move focus"), s("Move"), action_key_group(&km, &[
                     &[Action::MoveFocus(Direction::Left)], &[Action::MoveFocus(Direction::Down)],
                     &[Action::MoveFocus(Direction::Up)], &[Action::MoveFocus(Direction::Right)]
-                ])),
-                (s("New"), s("New"), action_key(&km, &[
-                    Action::NewPane(None, None), Action::SwitchToMode(InputMode::Normal)
                 ])),
                 (s("Close"), s("Close"), action_key(&km, &[
                     Action::CloseFocus, Action::SwitchToMode(InputMode::Normal)
@@ -131,16 +131,16 @@ pub fn get_keys_and_hints(mode_info: &ModeInfo) -> Vec<(String, String, Vec<Key>
                 (s("Split right"), s("Right"), action_key(&km, &[
                     Action::NewPane(Some(Direction::Right), None), Action::SwitchToMode(InputMode::Normal)
                 ])),
-                (s("Fullscreen"), s("Fullscreen"), action_key(&km, &[
+                (s("Toggle Fullscreen"), s("Fullscreen"), action_key(&km, &[
                     Action::ToggleFocusFullscreen, Action::SwitchToMode(InputMode::Normal)
                 ])),
-                (s("Frames"), s("Frames"), action_key(&km, &[
+                (s("Toggle Frames"), s("Frames"), action_key(&km, &[
                     Action::TogglePaneFrames, Action::SwitchToMode(InputMode::Normal)
                 ])),
-                (s("Floating toggle"), s("Floating"),action_key(&km, &[
+                (s("Toggle Floating"), s("Floating"),action_key(&km, &[
                     Action::ToggleFloatingPanes, Action::SwitchToMode(InputMode::Normal)
                 ])),
-                (s("Embed pane"), s("Embed"), action_key(&km, &[
+                (s("Toggle Embed"), s("Embed"), action_key(&km, &[
                     Action::TogglePaneEmbedOrFloating, Action::SwitchToMode(InputMode::Normal)
                 ])),
                 (s("Next"), s("Next"), action_key(&km, &[Action::SwitchFocus])),
@@ -149,11 +149,11 @@ pub fn get_keys_and_hints(mode_info: &ModeInfo) -> Vec<(String, String, Vec<Key>
         },
         InputMode::Tab => {
             vec![
-                (s("Move focus"), s("Move"), action_key_group(&km, &[
-                    &[Action::GoToPreviousTab], &[Action::GoToNextTab]
-                ])),
                 (s("New"), s("New"), action_key(&km, &[
                     Action::NewTab(None, vec![], None, None, None), Action::SwitchToMode(InputMode::Normal)
+                ])),
+                (s("Change Focus"), s("Move"), action_key_group(&km, &[
+                    &[Action::GoToPreviousTab], &[Action::GoToNextTab]
                 ])),
                 (s("Close"), s("Close"), action_key(&km, &[
                     Action::CloseTab, Action::SwitchToMode(InputMode::Normal)]
@@ -164,12 +164,21 @@ pub fn get_keys_and_hints(mode_info: &ModeInfo) -> Vec<(String, String, Vec<Key>
                 (s("Sync"), s("Sync"), action_key(&km, &[
                     Action::ToggleActiveSyncTab, Action::SwitchToMode(InputMode::Normal)
                 ])),
+                (s("Break pane to new tab"), s("Break out"), action_key(&km, &[Action::BreakPane, Action::SwitchToMode(InputMode::Normal)])),
+                (s("Break pane left/right"), s("Break"), action_key_group(&km, &[
+                    &[Action::BreakPaneLeft, Action::SwitchToMode(InputMode::Normal)],
+                    &[Action::BreakPaneRight, Action::SwitchToMode(InputMode::Normal)],
+                ])),
                 (s("Toggle"), s("Toggle"), action_key(&km, &[Action::ToggleTab])),
                 (s("Select tab"), s("Select"), to_normal_key),
             ]
         },
         InputMode::Resize => {
             vec![
+                (s("Increase/Decrease size"), s("Increase/Decrease"), action_key_group(&km, &[
+                        &[Action::Resize(Resize::Increase, None)],
+                        &[Action::Resize(Resize::Decrease, None)]
+                ])),
                 (s("Increase to"), s("Increase"), action_key_group(&km, &[
                     &[Action::Resize(Resize::Increase, Some(Direction::Left))],
                     &[Action::Resize(Resize::Increase, Some(Direction::Down))],
@@ -182,16 +191,12 @@ pub fn get_keys_and_hints(mode_info: &ModeInfo) -> Vec<(String, String, Vec<Key>
                     &[Action::Resize(Resize::Decrease, Some(Direction::Up))],
                     &[Action::Resize(Resize::Decrease, Some(Direction::Right))]
                 ])),
-                (s("Increase/Decrease size"), s("Increase/Decrease"), action_key_group(&km, &[
-                        &[Action::Resize(Resize::Increase, None)],
-                        &[Action::Resize(Resize::Decrease, None)]
-                ])),
                 (s("Select pane"), s("Select"), to_normal_key),
             ]
         },
         InputMode::Move => {
             vec![
-                (s("Move"), s("Move"), action_key_group(&km, &[
+                (s("Switch Location"), s("Move"), action_key_group(&km, &[
                     &[Action::MovePane(Some(Direction::Left))], &[Action::MovePane(Some(Direction::Down))],
                     &[Action::MovePane(Some(Direction::Up))], &[Action::MovePane(Some(Direction::Right))]
                 ])),
@@ -200,6 +205,9 @@ pub fn get_keys_and_hints(mode_info: &ModeInfo) -> Vec<(String, String, Vec<Key>
         },
         InputMode::Scroll => {
             vec![
+                (s("Enter search term"), s("Search"), action_key(&km, &[
+                    Action::SwitchToMode(InputMode::EnterSearch), Action::SearchInput(vec![0])
+                ])),
                 (s("Scroll"), s("Scroll"), action_key_group(&km, &[
                     &[Action::ScrollDown], &[Action::ScrollUp]
                 ])),
@@ -211,9 +219,6 @@ pub fn get_keys_and_hints(mode_info: &ModeInfo) -> Vec<(String, String, Vec<Key>
                 ])),
                 (s("Edit scrollback in default editor"), s("Edit"), action_key(&km, &[
                     Action::EditScrollback, Action::SwitchToMode(InputMode::Normal)
-                ])),
-                (s("Enter search term"), s("Search"), action_key(&km, &[
-                    Action::SwitchToMode(InputMode::EnterSearch), Action::SearchInput(vec![0])
                 ])),
                 (s("Select pane"), s("Select"), to_normal_key),
             ]
@@ -228,6 +233,9 @@ pub fn get_keys_and_hints(mode_info: &ModeInfo) -> Vec<(String, String, Vec<Key>
         },
         InputMode::Search => {
             vec![
+                (s("Enter Search term"), s("Search"), action_key(&km, &[
+                    Action::SwitchToMode(InputMode::EnterSearch), Action::SearchInput(vec![0])
+                ])),
                 (s("Scroll"), s("Scroll"), action_key_group(&km, &[
                     &[Action::ScrollDown], &[Action::ScrollUp]
                 ])),
@@ -236,9 +244,6 @@ pub fn get_keys_and_hints(mode_info: &ModeInfo) -> Vec<(String, String, Vec<Key>
                 ])),
                 (s("Scroll half page"), s("Scroll"), action_key_group(&km, &[
                     &[Action::HalfPageScrollDown], &[Action::HalfPageScrollUp]
-                ])),
-                (s("Enter term"), s("Search"), action_key(&km, &[
-                    Action::SwitchToMode(InputMode::EnterSearch), Action::SearchInput(vec![0])
                 ])),
                 (s("Search down"), s("Down"), action_key(&km, &[Action::Search(SearchDirection::Down)])),
                 (s("Search up"), s("Up"), action_key(&km, &[Action::Search(SearchDirection::Up)])),
@@ -250,6 +255,7 @@ pub fn get_keys_and_hints(mode_info: &ModeInfo) -> Vec<(String, String, Vec<Key>
         InputMode::Session => {
             vec![
                 (s("Detach"), s("Detach"), action_key(&km, &[Action::Detach])),
+                (s("Session Manager"), s("Manager"), action_key(&km, &[Action::LaunchOrFocusPlugin(Default::default(), true, true, false), Action::SwitchToMode(InputMode::Normal)])),
                 (s("Select pane"), s("Select"), to_normal_key),
             ]
         },

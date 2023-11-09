@@ -7,5 +7,5 @@ edition = "2021"
 [dependencies]
 ansi_term = "0.12"
 strum = { version = "0.25", features = ["derive"] }
-zellij-tile = "0.38.0"
-zellij-tile-utils = "0.38.0"
+zellij-tile = "0.39.0"
+zellij-tile-utils = "0.39.0"

@@ -6,7 +6,7 @@ oneliner is a [Zellij](https://github.com/zellij-org/zellij) plugin which is a m
 This is a soft fork of Zellij's default [status-bar](https://github.com/zellij-org/zellij/tree/main/default-plugins/status-bar) plugin.
 
 ## Requirements
-- [Zellij](https://github.com/zellij-org/zellij): ver >= `0.38.0`
+- [Zellij](https://github.com/zellij-org/zellij): ver >= `0.39.0`
 - [Rust](https://www.rust-lang.org/). Recommended to use Rust through [rustup](https://rustup.rs/).
 
 ## Usage

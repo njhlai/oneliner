@@ -194,7 +194,7 @@ pub fn generate_shortcuts(keybinds: &[(Key, Vec<Action>)], mode: &InputMode) -> 
         InputMode::Tmux => KeyAction::Tmux,
     };
 
-    for shortcut in shortcuts.iter_mut() {
+    for shortcut in &mut shortcuts {
         if shortcut.action == key_action {
             // Highlight current mode
             shortcut.mode = KeyMode::Selected;

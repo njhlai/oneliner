@@ -13,8 +13,6 @@ struct State {
     mode_info: ModeInfo,
 }
 
-register_plugin!(State);
-
 impl ZellijPlugin for State {
     fn load(&mut self, _: std::collections::BTreeMap<String, String>) {
         set_selectable(false);
@@ -55,3 +53,5 @@ impl ZellijPlugin for State {
         print!("{status}");
     }
 }
+
+register_plugin!(State);

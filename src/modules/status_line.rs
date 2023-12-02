@@ -93,7 +93,7 @@ impl StatusLine {
         let mut full_hints = StatusLine::default();
         let mut short_hints = StatusLine::default();
         let mut is_full_overflowing = false;
-        for (long, short, keys) in keys_and_hints.into_iter() {
+        for (long, short, keys) in keys_and_hints {
             if !is_full_overflowing {
                 // Build the full version as long as it fits
                 full_hints.add_shortcut_keybindings(colored_elements, &long, &keys, is_locked_mode);

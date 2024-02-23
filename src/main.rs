@@ -15,8 +15,13 @@ struct State {
 
 impl ZellijPlugin for State {
     fn load(&mut self, _: std::collections::BTreeMap<String, String>) {
-        set_selectable(false);
-        subscribe(&[EventType::ModeUpdate, EventType::TabUpdate]);
+        set_selectable(true);
+        request_permission(&[PermissionType::ReadApplicationState]);
+        subscribe(&[
+            EventType::ModeUpdate,
+            EventType::TabUpdate,
+            EventType::PermissionRequestResult,
+        ]);
     }
 
     fn update(&mut self, event: Event) -> bool {
@@ -30,6 +35,11 @@ impl ZellijPlugin for State {
             Event::TabUpdate(tabs) => {
                 should_render = self.tabs != tabs;
                 self.tabs = tabs;
+            }
+            Event::PermissionRequestResult(_) => {
+                should_render = true;
+                set_selectable(false);
+                unsubscribe(&[EventType::PermissionRequestResult]);
             }
             _ => {}
         }

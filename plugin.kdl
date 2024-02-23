@@ -1,7 +1,7 @@
 layout {
     pane
     pane borderless=true size=1 {
-        plugin location="file:./target/wasm32-wasi/debug/oneliner.wasm"
+        plugin location="file:target/wasm32-wasi/debug/oneliner.wasm"
     }
     pane borderless=true size=2 {
         plugin location="zellij:status-bar"

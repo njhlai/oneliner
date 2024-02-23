@@ -45,6 +45,7 @@ layout {
     ...
 }
 ```
+Grant `oneliner` the `ReadApplicationState` permission when prompted, which will only be asked during the first run of `oneliner`.
 
 ### Testing in dev mode
 To test the plugin in dev mode:
@@ -54,3 +55,4 @@ cargo build
 # Running in Zellij with provided layout for testing
 zellij -l plugin.yaml
 ```
+Grant `oneliner` the `ReadApplicationState` permission when prompted as above.
